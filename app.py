@@ -769,6 +769,7 @@ def _init():
         "is_playing":    False,
         "anim_speed":    1.2,
         "scenario_name": "",
+        "current_view":  "dashboard",
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -805,40 +806,51 @@ with st.sidebar:
 </div>
 """, unsafe_allow_html=True)
 
+    # Workspace Mode Switcher
+    st.markdown('<div class="sidebar-title">Workspace View</div>', unsafe_allow_html=True)
+    c_w1, c_w2 = st.columns(2)
+    with c_w1:
+        dash_active = (st.session_state.get("current_view", "dashboard") == "dashboard")
+        dash_type = "primary" if dash_active else "secondary"
+        if st.button("📊 Timetable", type=dash_type, use_container_width=True, help="View Timetable Matrix, Protocol Stream & Telemetry"):
+            st.session_state.current_view = "dashboard"
+            st.rerun()
+    with c_w2:
+        stud_active = (st.session_state.get("current_view") == "studio")
+        stud_type = "primary" if stud_active else "secondary"
+        if st.button("🛠️ Studio", type=stud_type, use_container_width=True, help="Enter/Customize Teachers, Rooms, Courses & Students"):
+            st.session_state.current_view = "studio"
+            st.rerun()
+
+    st.markdown("---")
     st.markdown('<div class="sidebar-title">Benchmark Scenarios</div>', unsafe_allow_html=True)
 
     if st.button("Demo — Conflict Resolution"):
         _load(build_demo_scenario(), "Demo Benchmark (Conflict & Resolution)")
+        st.session_state.current_view = "dashboard"
         st.rerun()
 
     if st.button("Conflict Benchmark (CSE401)"):
         _load(build_conflict_scenario(), "Conflict Benchmark (CSE401 vs CSE330)")
+        st.session_state.current_view = "dashboard"
         st.rerun()
 
     if st.button("Stress Test (Unsatisfiable)"):
         _load(build_unsatisfiable_scenario(), "Stress Test (Unsatisfiable Domain)")
+        st.session_state.current_view = "dashboard"
         st.rerun()
 
     if st.button("Scale Benchmark (Full Department)"):
         _load(build_department_scale_scenario(), "Scale Benchmark (Full Department)")
+        st.session_state.current_view = "dashboard"
         st.rerun()
 
     st.markdown("---")
     st.markdown('<div class="sidebar-title">Real-Time Studio</div>', unsafe_allow_html=True)
 
-    if st.button("⚡ Live Scenario Studio"):
-        if "studio_data" in st.session_state:
-            _load(
-                build_custom_scenario(
-                    st.session_state.studio_data["teachers"],
-                    st.session_state.studio_data["rooms"],
-                    st.session_state.studio_data["students"],
-                    st.session_state.studio_data["sessions"],
-                    st.session_state.studio_data.get("pre_committed", [])
-                ),
-                f"Real-Time Studio ({len(st.session_state.studio_data['teachers'])} Faculty, {len(st.session_state.studio_data['sessions'])} Sessions)"
-            )
-            st.rerun()
+    if st.button("⚡ Open Live Scenario Studio"):
+        st.session_state.current_view = "studio"
+        st.rerun()
 
     if st.button("Reset Simulation"):
         if st.session_state.sim is not None:
@@ -846,19 +858,9 @@ with st.sidebar:
                 _load(build_unsatisfiable_scenario(), "Stress Test (Unsatisfiable Domain)")
             elif "Scale" in st.session_state.scenario_name:
                 _load(build_department_scale_scenario(), "Scale Benchmark (Full Department)")
-            elif "Real-Time Studio" in st.session_state.scenario_name and "studio_data" in st.session_state:
-                _load(
-                    build_custom_scenario(
-                        st.session_state.studio_data["teachers"],
-                        st.session_state.studio_data["rooms"],
-                        st.session_state.studio_data["students"],
-                        st.session_state.studio_data["sessions"],
-                        st.session_state.studio_data.get("pre_committed", [])
-                    ),
-                    st.session_state.scenario_name
-                )
             else:
                 _load(build_demo_scenario(), "Demo Benchmark (Conflict & Resolution)")
+        st.session_state.current_view = "dashboard"
         st.rerun()
 
     st.markdown("---")
@@ -977,15 +979,321 @@ if sim() is None:
     st.stop()
 
 
-# ─── Navigation Tabs ─────────────────────────────────────────────────────────
+def render_scenario_studio():
+    col_t_title, col_t_back = st.columns([3.5, 1.5])
+    with col_t_title:
+        st.markdown("""
+<div class="studio-banner" style="margin-bottom:12px;">
+  <div class="studio-tag">Autonomous Multi-Agent Studio</div>
+  <div class="studio-title">Real-Time Scenario Studio &amp; Timetable Creator</div>
+  <div class="studio-subtitle">
+    Input custom faculty, rooms, courses, and student cohorts or click <strong>Auto-Fill 5 Teachers &amp; 8 Courses</strong>. The autonomous agents will synchronously negotiate a conflict-free timetable satisfying all H1–H6 constraints.
+  </div>
+</div>
+""", unsafe_allow_html=True)
+    with col_t_back:
+        st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
+        if st.button("📊 View Timetable Dashboard ➜", use_container_width=True):
+            st.session_state.current_view = "dashboard"
+            st.rerun()
 
-tab_stream, tab_matrix, tab_verify, tab_metrics, tab_arch, tab_studio = st.tabs([
+    if "studio_data" not in st.session_state:
+        st.session_state.studio_data = get_autofill_five_teachers_dept()
+
+    s_data = st.session_state.studio_data
+
+    # Preset Quick Action Bar
+    c_btn1, c_btn2, c_btn3 = st.columns([1.6, 1.4, 1.0])
+    with c_btn1:
+        if st.button("⚡ Auto-Fill 5 Teachers & 8 Courses", use_container_width=True, help="Populate full 5-teacher, 8-course, 5-room department scenario"):
+            st.session_state.studio_data = get_autofill_five_teachers_dept()
+            st.toast("Loaded 5-Teacher & 8-Course Department Preset!", icon="🏛️")
+            st.rerun()
+    with c_btn2:
+        if st.button("⚡ Auto-Fill Demo (3 Teachers)", use_container_width=True, help="Populate standard 3-teacher 5-course demo"):
+            st.session_state.studio_data = {
+                "teachers": [
+                    {"id": "T1", "name": "Prof. Arora", "priority": 3, "pref_day": "MONDAY", "pref_period": "P2"},
+                    {"id": "T2", "name": "Dr. Mehra",   "priority": 2, "pref_day": "TUESDAY", "pref_period": "P2"},
+                    {"id": "T3", "name": "Dr. Kapoor",  "priority": 1, "pref_day": "WEDNESDAY", "pref_period": "P2"},
+                ],
+                "rooms": [
+                    {"id": "R101", "capacity": 50, "type": "LECTURE", "building": "Block-A"},
+                    {"id": "R204", "capacity": 70, "type": "LECTURE", "building": "Block-B"},
+                    {"id": "R305", "capacity": 40, "type": "LECTURE", "building": "Block-A"},
+                    {"id": "LAB1", "capacity": 35, "type": "LAB",     "building": "Block-C"},
+                ],
+                "students": [
+                    {"id": "S1", "name": "Cohort-A (CS Core)", "courses": "CSE401, CSE330"},
+                    {"id": "S2", "name": "Cohort-B (AI Major)", "courses": "CSE501, CSE401"},
+                    {"id": "S3", "name": "Cohort-C (Math)",     "courses": "MAT101L, CSE202"},
+                ],
+                "sessions": [
+                    {"code": "CSE401",  "name": "Advanced Algorithms",  "teacher_id": "T1", "enrollment": 45, "type": "LECTURE"},
+                    {"code": "CSE330",  "name": "Operating Systems",    "teacher_id": "T2", "enrollment": 48, "type": "LECTURE"},
+                    {"code": "CSE501",  "name": "Machine Learning",     "teacher_id": "T1", "enrollment": 40, "type": "LECTURE"},
+                    {"code": "CSE202",  "name": "Data Structures",      "teacher_id": "T3", "enrollment": 38, "type": "LECTURE"},
+                    {"code": "MAT101L", "name": "Discrete Math Lab",    "teacher_id": "T3", "enrollment": 30, "type": "LAB"},
+                ],
+                "pre_committed": [
+                    {"session_id": "SES_CSE330", "day": "MONDAY", "period": "P2", "room_id": "R101"}
+                ]
+            }
+            st.toast("Loaded 3-Teacher Demo Preset!", icon="📋")
+            st.rerun()
+    with c_btn3:
+        if st.button("🧹 Clear Custom", use_container_width=True, help="Clear to minimal customizable template"):
+            st.session_state.studio_data = {
+                "teachers": [{"id": "T1", "name": "Prof. Primary", "priority": 1, "pref_day": "MONDAY", "pref_period": "P1"}],
+                "rooms": [{"id": "R101", "capacity": 50, "type": "LECTURE", "building": "Block-A"}],
+                "students": [{"id": "S1", "name": "Group-1", "courses": "CSE101"}],
+                "sessions": [{"code": "CSE101", "name": "Intro to Computing", "teacher_id": "T1", "enrollment": 40, "type": "LECTURE"}],
+                "pre_committed": []
+            }
+            st.toast("Reset to minimal blank template", icon="🧹")
+            st.rerun()
+
+    st.markdown("<br/>", unsafe_allow_html=True)
+
+    # 5 Sub-Tabs for clean category inputs
+    st_t1, st_t2, st_t3, st_t4, st_t5 = st.tabs([
+        "👨‍🏫 Faculty / Teachers",
+        "🏛️ Rooms & Labs",
+        "📚 Course Sessions",
+        "👥 Student Cohorts",
+        "⚠️ Collision Obstacles (Optional)"
+    ])
+
+    days_opts = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"]
+    periods_opts = ["P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8"]
+    room_types = ["LECTURE", "LAB"]
+
+    # 1. Teachers Tab
+    with st_t1:
+        st.markdown('<div class="sec-header">Teacher Agent Parameters (Priority & Preferences)</div>', unsafe_allow_html=True)
+        cur_t_count = len(s_data.get("teachers", []))
+        t_count = st.number_input("Number of Teachers", min_value=1, max_value=8, value=cur_t_count, step=1, key="num_teachers_input")
+        
+        teachers_list = list(s_data.get("teachers", []))
+        while len(teachers_list) < t_count:
+            idx_new = len(teachers_list) + 1
+            teachers_list.append({
+                "id": f"T{idx_new}",
+                "name": f"Faculty {idx_new}",
+                "priority": max(1, 6 - idx_new),
+                "pref_day": days_opts[(idx_new - 1) % len(days_opts)],
+                "pref_period": "P2"
+            })
+        teachers_list = teachers_list[:t_count]
+
+        for i, t in enumerate(teachers_list):
+            c1, c2, c3, c4, c5 = st.columns([1.2, 2.5, 1.5, 1.5, 1.5])
+            with c1:
+                t["id"] = st.text_input("Teacher ID", value=t.get("id", f"T{i+1}"), key=f"t_id_{i}")
+            with c2:
+                t["name"] = st.text_input("Full Name", value=t.get("name", f"Faculty {i+1}"), key=f"t_name_{i}")
+            with c3:
+                t["priority"] = st.number_input("Priority (ABT)", min_value=1, max_value=10, value=int(t.get("priority", 1)), key=f"t_prio_{i}")
+            with c4:
+                cur_day = t.get("pref_day", "MONDAY").upper()
+                day_idx = days_opts.index(cur_day) if cur_day in days_opts else 0
+                t["pref_day"] = st.selectbox("Preferred Day", days_opts, index=day_idx, key=f"t_pday_{i}")
+            with c5:
+                cur_per = t.get("pref_period", "P2").upper()
+                per_idx = periods_opts.index(cur_per) if cur_per in periods_opts else 1
+                t["pref_period"] = st.selectbox("Preferred Period", periods_opts, index=per_idx, key=f"t_pper_{i}")
+
+        s_data["teachers"] = teachers_list
+
+    # 2. Rooms Tab
+    with st_t2:
+        st.markdown('<div class="sec-header">Room Resource Agents (Capacity & Specifications)</div>', unsafe_allow_html=True)
+        cur_r_count = len(s_data.get("rooms", []))
+        r_count = st.number_input("Number of Rooms / Labs", min_value=1, max_value=8, value=cur_r_count, step=1, key="num_rooms_input")
+        
+        rooms_list = list(s_data.get("rooms", []))
+        while len(rooms_list) < r_count:
+            idx_new = len(rooms_list) + 1
+            rooms_list.append({
+                "id": f"R{100 + idx_new*10}",
+                "capacity": 50,
+                "type": "LECTURE",
+                "building": "Block-A"
+            })
+        rooms_list = rooms_list[:r_count]
+
+        for i, r in enumerate(rooms_list):
+            c1, c2, c3, c4 = st.columns([1.5, 1.8, 1.8, 2.0])
+            with c1:
+                r["id"] = st.text_input("Room ID", value=r.get("id", f"R{i+1}"), key=f"r_id_{i}")
+            with c2:
+                r["capacity"] = st.number_input("Capacity (Seats)", min_value=10, max_value=250, value=int(r.get("capacity", 40)), step=5, key=f"r_cap_{i}")
+            with c3:
+                cur_rtype = r.get("type", "LECTURE").upper()
+                rtype_idx = 1 if cur_rtype == "LAB" else 0
+                r["type"] = st.selectbox("Facility Type", room_types, index=rtype_idx, key=f"r_type_{i}")
+            with c4:
+                r["building"] = st.text_input("Building / Wing", value=r.get("building", "Main Block"), key=f"r_bld_{i}")
+
+        s_data["rooms"] = rooms_list
+
+    # 3. Sessions Tab
+    with st_t3:
+        st.markdown('<div class="sec-header">Course Sessions to Schedule (Requirements)</div>', unsafe_allow_html=True)
+        cur_s_count = len(s_data.get("sessions", []))
+        sess_count = st.number_input("Number of Sessions", min_value=1, max_value=12, value=cur_s_count, step=1, key="num_sessions_input")
+        
+        teacher_ids = [t["id"] for t in s_data.get("teachers", [])] or ["T1"]
+        sessions_list = list(s_data.get("sessions", []))
+        while len(sessions_list) < sess_count:
+            idx_new = len(sessions_list) + 1
+            sessions_list.append({
+                "code": f"CSE{200 + idx_new*20}",
+                "name": f"Core Subject {idx_new}",
+                "teacher_id": teacher_ids[0],
+                "enrollment": 40,
+                "type": "LECTURE"
+            })
+        sessions_list = sessions_list[:sess_count]
+
+        for i, sess in enumerate(sessions_list):
+            c1, c2, c3, c4, c5 = st.columns([1.4, 2.5, 1.5, 1.4, 1.4])
+            with c1:
+                sess["code"] = st.text_input("Course Code", value=sess.get("code", f"CRS{i+1}"), key=f"sess_code_{i}")
+            with c2:
+                sess["name"] = st.text_input("Course Title", value=sess.get("name", f"Course {i+1}"), key=f"sess_name_{i}")
+            with c3:
+                cur_t = sess.get("teacher_id", teacher_ids[0])
+                t_idx = teacher_ids.index(cur_t) if cur_t in teacher_ids else 0
+                sess["teacher_id"] = st.selectbox("Assigned Faculty", teacher_ids, index=t_idx, key=f"sess_t_{i}")
+            with c4:
+                sess["enrollment"] = st.number_input("Enrollment", min_value=10, max_value=250, value=int(sess.get("enrollment", 35)), step=5, key=f"sess_cap_{i}")
+            with c5:
+                cur_stype = sess.get("type", "LECTURE").upper()
+                stype_idx = 1 if cur_stype == "LAB" else 0
+                sess["type"] = st.selectbox("Format", room_types, index=stype_idx, key=f"sess_type_{i}")
+
+        s_data["sessions"] = sessions_list
+
+    # 4. Students Tab
+    with st_t4:
+        st.markdown('<div class="sec-header">Student Cohort Agents (Enrollments & Conflicts)</div>', unsafe_allow_html=True)
+        cur_c_count = len(s_data.get("students", []))
+        cohort_count = st.number_input("Number of Student Cohorts", min_value=1, max_value=6, value=cur_c_count, step=1, key="num_cohorts_input")
+
+        students_list = list(s_data.get("students", []))
+        while len(students_list) < cohort_count:
+            idx_new = len(students_list) + 1
+            students_list.append({
+                "id": f"S{idx_new}",
+                "name": f"Cohort-{idx_new}",
+                "courses": s_data["sessions"][0]["code"] if s_data.get("sessions") else "CSE101"
+            })
+        students_list = students_list[:cohort_count]
+
+        for i, std in enumerate(students_list):
+            c1, c2, c3 = st.columns([1.2, 2.2, 3.5])
+            with c1:
+                std["id"] = st.text_input("Cohort ID", value=std.get("id", f"S{i+1}"), key=f"std_id_{i}")
+            with c2:
+                std["name"] = st.text_input("Cohort Label", value=std.get("name", f"Cohort {i+1}"), key=f"std_name_{i}")
+            with c3:
+                std["courses"] = st.text_input("Enrolled Courses (comma-separated)", value=std.get("courses", ""), key=f"std_crs_{i}", help="Example: CSE401, CSE330, CSE410L")
+
+        s_data["students"] = students_list
+
+    # 5. Obstacles Tab
+    with st_t5:
+        st.markdown('<div class="sec-header">Environmental Obstacle (Pre-Committed External Booking)</div>', unsafe_allow_html=True)
+        st.write("Simulate a room already being occupied during a specific time slot to observe autonomous agent backtracking and conflict resolution.")
+        
+        has_obs = len(s_data.get("pre_committed", [])) > 0
+        inject_obstacle = st.checkbox("Inject Pre-Committed Room Booking", value=has_obs, key="inject_obs_chk")
+        
+        if inject_obstacle:
+            obs_r_opts = [r["id"] for r in s_data.get("rooms", [])] or ["R101"]
+            c1, c2, c3, c4 = st.columns(4)
+            with c1:
+                obs_rid = st.selectbox("Occupied Room", obs_r_opts, index=0, key="obs_rid")
+            with c2:
+                obs_day = st.selectbox("Day", days_opts, index=0, key="obs_day")
+            with c3:
+                obs_per = st.selectbox("Period", periods_opts, index=1, key="obs_per")
+            with c4:
+                obs_desc = st.text_input("Reason / External Event", value="University Seminar", key="obs_desc")
+            
+            s_data["pre_committed"] = [{
+                "session_id": "SES_EXTERNAL_OBS",
+                "day": obs_day,
+                "period": obs_per,
+                "room_id": obs_rid
+            }]
+        else:
+            s_data["pre_committed"] = []
+
+    st.session_state.studio_data = s_data
+
+    # Deploy Multi-Agent Council
+    st.markdown("---")
+    deploy_btn = st.button("🚀 Run Multi-Agent Council & Generate Timetable", type="primary", use_container_width=True)
+
+    if deploy_btn:
+        errs = []
+        r_ids = [r["id"] for r in s_data["rooms"]]
+        t_ids = [t["id"] for t in s_data["teachers"]]
+        
+        if len(r_ids) != len(set(r_ids)):
+            errs.append("Duplicate Room IDs detected. Each room must have a unique identifier.")
+        if len(t_ids) != len(set(t_ids)):
+            errs.append("Duplicate Teacher IDs detected. Each teacher must have a unique identifier.")
+        
+        for sess in s_data["sessions"]:
+            if sess["teacher_id"] not in t_ids:
+                errs.append(f"Session {sess['code']} is assigned to unknown teacher {sess['teacher_id']}.")
+        
+        if errs:
+            for e in errs:
+                st.error(e)
+        else:
+            with st.spinner("Autonomous Agents negotiating time and room contracts via FIPA CNP..."):
+                custom_scen = build_custom_scenario(
+                    teachers_raw=s_data["teachers"],
+                    rooms_raw=s_data["rooms"],
+                    students_raw=s_data["students"],
+                    sessions_raw=s_data["sessions"],
+                    pre_committed_raw=s_data.get("pre_committed", [])
+                )
+                scen_name = f"Real-Time Studio ({len(s_data['teachers'])} Faculty, {len(s_data['sessions'])} Sessions)"
+                _load(custom_scen, scen_name)
+                st.session_state.current_view = "dashboard"
+                st.toast("Timetable successfully generated by autonomous agent council!", icon="🎉")
+                st.rerun()
+
+
+# ─── Main View Routing (Dashboard vs Studio) ─────────────────────────────────
+
+if st.session_state.get("current_view") == "studio":
+    render_scenario_studio()
+    st.stop()
+
+# ─── Timetable Dashboard Navigation Header ───────────────────────────────────
+
+col_dash_info, col_dash_studio = st.columns([3.8, 1.2])
+with col_dash_info:
+    st.markdown("<div style='font-size:0.83rem; color:#6E6265; padding:6px 0 10px;'>Workspace: <strong>Timetable &amp; Protocol Dashboard</strong> &nbsp;&bull;&nbsp; Inspect live contracts, weekly matrix &amp; constraint checks</div>", unsafe_allow_html=True)
+with col_dash_studio:
+    if st.button("🛠️ Open Scenario Studio ➜", use_container_width=True, help="Enter/Customize your own teachers, rooms, and courses"):
+        st.session_state.current_view = "studio"
+        st.rerun()
+
+# ─── Dashboard Tabs ──────────────────────────────────────────────────────────
+
+tab_stream, tab_matrix, tab_verify, tab_metrics, tab_arch = st.tabs([
     "Protocol Stream",
     "Master Matrix",
     "Constraint Verification",
     "Telemetry & Analytics",
     "System Architecture",
-    "Interactive Scenario Studio",
 ])
 
 s          = sim()
@@ -1495,342 +1803,7 @@ Teacher (Manager)                Room (Contractor)           Student (Cohort)
 """)
 
 
-# ═════════════════════════════════════════════════════════════════════════════
-#  TAB 6: INTERACTIVE SCENARIO STUDIO (REAL-TIME INPUT)
-# ═════════════════════════════════════════════════════════════════════════════
 
-with tab_studio:
-    st.markdown("""
-<div class="studio-banner">
-  <div class="studio-tag">Autonomous Multi-Agent Studio</div>
-  <div class="studio-title">Real-Time Academic Timetable Studio</div>
-  <div class="studio-subtitle">
-    Configure live faculty agents, rooms, courses, and student cohorts or click <strong>Auto-Fill 5 Teachers &amp; 8 Courses</strong> for an instant full department demo. The autonomous agents negotiate time and room allocations synchronously in real-time.
-  </div>
-</div>
-""", unsafe_allow_html=True)
-
-    if "studio_data" not in st.session_state:
-        st.session_state.studio_data = get_autofill_five_teachers_dept()
-
-    s_data = st.session_state.studio_data
-
-    # Preset Quick Action Bar
-    c_btn1, c_btn2, c_btn3 = st.columns([1.6, 1.4, 1.0])
-    with c_btn1:
-        if st.button("⚡ Auto-Fill 5 Teachers & 8 Courses", use_container_width=True, help="Populate full 5-teacher, 8-course, 5-room department scenario"):
-            st.session_state.studio_data = get_autofill_five_teachers_dept()
-            st.toast("Loaded 5-Teacher & 8-Course Department Preset!", icon="🏛️")
-            st.rerun()
-    with c_btn2:
-        if st.button("⚡ Auto-Fill Demo (3 Teachers)", use_container_width=True, help="Populate standard 3-teacher 5-course demo"):
-            st.session_state.studio_data = {
-                "teachers": [
-                    {"id": "T1", "name": "Prof. Arora", "priority": 3, "pref_day": "MONDAY", "pref_period": "P2"},
-                    {"id": "T2", "name": "Dr. Mehra",   "priority": 2, "pref_day": "TUESDAY", "pref_period": "P2"},
-                    {"id": "T3", "name": "Dr. Kapoor",  "priority": 1, "pref_day": "WEDNESDAY", "pref_period": "P2"},
-                ],
-                "rooms": [
-                    {"id": "R101", "capacity": 50, "type": "LECTURE", "building": "Block-A"},
-                    {"id": "R204", "capacity": 70, "type": "LECTURE", "building": "Block-B"},
-                    {"id": "R305", "capacity": 40, "type": "LECTURE", "building": "Block-A"},
-                    {"id": "LAB1", "capacity": 35, "type": "LAB",     "building": "Block-C"},
-                ],
-                "students": [
-                    {"id": "S1", "name": "Cohort-A (CS Core)", "courses": "CSE401, CSE330"},
-                    {"id": "S2", "name": "Cohort-B (AI Major)", "courses": "CSE501, CSE401"},
-                    {"id": "S3", "name": "Cohort-C (Math)",     "courses": "MAT101L, CSE202"},
-                ],
-                "sessions": [
-                    {"code": "CSE401",  "name": "Advanced Algorithms",  "teacher_id": "T1", "enrollment": 45, "type": "LECTURE"},
-                    {"code": "CSE330",  "name": "Operating Systems",    "teacher_id": "T2", "enrollment": 48, "type": "LECTURE"},
-                    {"code": "CSE501",  "name": "Machine Learning",     "teacher_id": "T1", "enrollment": 40, "type": "LECTURE"},
-                    {"code": "CSE202",  "name": "Data Structures",      "teacher_id": "T3", "enrollment": 38, "type": "LECTURE"},
-                    {"code": "MAT101L", "name": "Discrete Math Lab",    "teacher_id": "T3", "enrollment": 30, "type": "LAB"},
-                ],
-                "pre_committed": [
-                    {"session_id": "SES_CSE330", "day": "MONDAY", "period": "P2", "room_id": "R101"}
-                ]
-            }
-            st.toast("Loaded 3-Teacher Demo Preset!", icon="📋")
-            st.rerun()
-    with c_btn3:
-        if st.button("🧹 Clear Custom", use_container_width=True, help="Clear to minimal customizable template"):
-            st.session_state.studio_data = {
-                "teachers": [{"id": "T1", "name": "Prof. Primary", "priority": 1, "pref_day": "MONDAY", "pref_period": "P1"}],
-                "rooms": [{"id": "R101", "capacity": 50, "type": "LECTURE", "building": "Block-A"}],
-                "students": [{"id": "S1", "name": "Group-1", "courses": "CSE101"}],
-                "sessions": [{"code": "CSE101", "name": "Intro to Computing", "teacher_id": "T1", "enrollment": 40, "type": "LECTURE"}],
-                "pre_committed": []
-            }
-            st.toast("Reset to minimal blank template", icon="🧹")
-            st.rerun()
-
-    st.markdown("<br/>", unsafe_allow_html=True)
-
-    # 5 Sub-Tabs for clean category inputs
-    st_t1, st_t2, st_t3, st_t4, st_t5 = st.tabs([
-        "Faculty / Teachers",
-        "Rooms & Labs",
-        "Course Sessions",
-        "Student Cohorts",
-        "Collision Obstacles (Optional)"
-    ])
-
-    days_opts = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"]
-    periods_opts = ["P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8"]
-    room_types = ["LECTURE", "LAB"]
-
-    # 1. Teachers Tab
-    with st_t1:
-        st.markdown('<div class="sec-header">Teacher Agent Parameters (Priority & Preferences)</div>', unsafe_allow_html=True)
-        cur_t_count = len(s_data.get("teachers", []))
-        t_count = st.number_input("Number of Teachers", min_value=1, max_value=8, value=cur_t_count, step=1, key="num_teachers_input")
-        
-        teachers_list = list(s_data.get("teachers", []))
-        while len(teachers_list) < t_count:
-            idx_new = len(teachers_list) + 1
-            teachers_list.append({
-                "id": f"T{idx_new}",
-                "name": f"Faculty {idx_new}",
-                "priority": max(1, 6 - idx_new),
-                "pref_day": days_opts[(idx_new - 1) % len(days_opts)],
-                "pref_period": "P2"
-            })
-        teachers_list = teachers_list[:t_count]
-
-        for i, t in enumerate(teachers_list):
-            c1, c2, c3, c4, c5 = st.columns([1.2, 2.5, 1.5, 1.5, 1.5])
-            with c1:
-                t["id"] = st.text_input("Teacher ID", value=t.get("id", f"T{i+1}"), key=f"t_id_{i}")
-            with c2:
-                t["name"] = st.text_input("Full Name", value=t.get("name", f"Faculty {i+1}"), key=f"t_name_{i}")
-            with c3:
-                t["priority"] = st.number_input("Priority (ABT)", min_value=1, max_value=10, value=int(t.get("priority", 1)), key=f"t_prio_{i}")
-            with c4:
-                cur_day = t.get("pref_day", "MONDAY").upper()
-                day_idx = days_opts.index(cur_day) if cur_day in days_opts else 0
-                t["pref_day"] = st.selectbox("Preferred Day", days_opts, index=day_idx, key=f"t_pday_{i}")
-            with c5:
-                cur_per = t.get("pref_period", "P2").upper()
-                per_idx = periods_opts.index(cur_per) if cur_per in periods_opts else 1
-                t["pref_period"] = st.selectbox("Preferred Period", periods_opts, index=per_idx, key=f"t_pper_{i}")
-
-        s_data["teachers"] = teachers_list
-
-    # 2. Rooms Tab
-    with st_t2:
-        st.markdown('<div class="sec-header">Room Resource Agents (Capacity & Specifications)</div>', unsafe_allow_html=True)
-        cur_r_count = len(s_data.get("rooms", []))
-        r_count = st.number_input("Number of Rooms / Labs", min_value=1, max_value=8, value=cur_r_count, step=1, key="num_rooms_input")
-        
-        rooms_list = list(s_data.get("rooms", []))
-        while len(rooms_list) < r_count:
-            idx_new = len(rooms_list) + 1
-            rooms_list.append({
-                "id": f"R{100 + idx_new*10}",
-                "capacity": 50,
-                "type": "LECTURE",
-                "building": "Block-A"
-            })
-        rooms_list = rooms_list[:r_count]
-
-        for i, r in enumerate(rooms_list):
-            c1, c2, c3, c4 = st.columns([1.5, 1.8, 1.8, 2.0])
-            with c1:
-                r["id"] = st.text_input("Room ID", value=r.get("id", f"R{i+1}"), key=f"r_id_{i}")
-            with c2:
-                r["capacity"] = st.number_input("Capacity (Seats)", min_value=10, max_value=250, value=int(r.get("capacity", 40)), step=5, key=f"r_cap_{i}")
-            with c3:
-                cur_rtype = r.get("type", "LECTURE").upper()
-                rtype_idx = 1 if cur_rtype == "LAB" else 0
-                r["type"] = st.selectbox("Facility Type", room_types, index=rtype_idx, key=f"r_type_{i}")
-            with c4:
-                r["building"] = st.text_input("Building / Wing", value=r.get("building", "Main Block"), key=f"r_bld_{i}")
-
-        s_data["rooms"] = rooms_list
-
-    # 3. Sessions Tab
-    with st_t3:
-        st.markdown('<div class="sec-header">Course Sessions to Schedule (Requirements)</div>', unsafe_allow_html=True)
-        cur_s_count = len(s_data.get("sessions", []))
-        sess_count = st.number_input("Number of Sessions", min_value=1, max_value=12, value=cur_s_count, step=1, key="num_sessions_input")
-        
-        teacher_ids = [t["id"] for t in s_data.get("teachers", [])] or ["T1"]
-        sessions_list = list(s_data.get("sessions", []))
-        while len(sessions_list) < sess_count:
-            idx_new = len(sessions_list) + 1
-            sessions_list.append({
-                "code": f"CSE{200 + idx_new*20}",
-                "name": f"Core Subject {idx_new}",
-                "teacher_id": teacher_ids[0],
-                "enrollment": 40,
-                "type": "LECTURE"
-            })
-        sessions_list = sessions_list[:sess_count]
-
-        for i, sess in enumerate(sessions_list):
-            c1, c2, c3, c4, c5 = st.columns([1.4, 2.5, 1.5, 1.4, 1.4])
-            with c1:
-                sess["code"] = st.text_input("Course Code", value=sess.get("code", f"CRS{i+1}"), key=f"sess_code_{i}")
-            with c2:
-                sess["name"] = st.text_input("Course Title", value=sess.get("name", f"Course {i+1}"), key=f"sess_name_{i}")
-            with c3:
-                cur_t = sess.get("teacher_id", teacher_ids[0])
-                t_idx = teacher_ids.index(cur_t) if cur_t in teacher_ids else 0
-                sess["teacher_id"] = st.selectbox("Assigned Faculty", teacher_ids, index=t_idx, key=f"sess_t_{i}")
-            with c4:
-                sess["enrollment"] = st.number_input("Enrollment", min_value=10, max_value=250, value=int(sess.get("enrollment", 35)), step=5, key=f"sess_cap_{i}")
-            with c5:
-                cur_stype = sess.get("type", "LECTURE").upper()
-                stype_idx = 1 if cur_stype == "LAB" else 0
-                sess["type"] = st.selectbox("Format", room_types, index=stype_idx, key=f"sess_type_{i}")
-
-        s_data["sessions"] = sessions_list
-
-    # 4. Students Tab
-    with st_t4:
-        st.markdown('<div class="sec-header">Student Cohort Agents (Enrollments & Conflicts)</div>', unsafe_allow_html=True)
-        cur_c_count = len(s_data.get("students", []))
-        cohort_count = st.number_input("Number of Student Cohorts", min_value=1, max_value=6, value=cur_c_count, step=1, key="num_cohorts_input")
-
-        students_list = list(s_data.get("students", []))
-        while len(students_list) < cohort_count:
-            idx_new = len(students_list) + 1
-            students_list.append({
-                "id": f"S{idx_new}",
-                "name": f"Cohort-{idx_new}",
-                "courses": s_data["sessions"][0]["code"] if s_data.get("sessions") else "CSE101"
-            })
-        students_list = students_list[:cohort_count]
-
-        for i, std in enumerate(students_list):
-            c1, c2, c3 = st.columns([1.2, 2.2, 3.5])
-            with c1:
-                std["id"] = st.text_input("Cohort ID", value=std.get("id", f"S{i+1}"), key=f"std_id_{i}")
-            with c2:
-                std["name"] = st.text_input("Cohort Label", value=std.get("name", f"Cohort {i+1}"), key=f"std_name_{i}")
-            with c3:
-                std["courses"] = st.text_input("Enrolled Courses (comma-separated)", value=std.get("courses", ""), key=f"std_crs_{i}", help="Example: CSE401, CSE330, CSE410L")
-
-        s_data["students"] = students_list
-
-    # 5. Obstacles Tab
-    with st_t5:
-        st.markdown('<div class="sec-header">Environmental Obstacle (Pre-Committed External Booking)</div>', unsafe_allow_html=True)
-        st.write("Simulate a room already being occupied during a specific time slot to observe autonomous agent backtracking and conflict resolution.")
-        
-        has_obs = len(s_data.get("pre_committed", [])) > 0
-        inject_obstacle = st.checkbox("Inject Pre-Committed Room Booking", value=has_obs, key="inject_obs_chk")
-        
-        if inject_obstacle:
-            obs_r_opts = [r["id"] for r in s_data.get("rooms", [])] or ["R101"]
-            c1, c2, c3, c4 = st.columns(4)
-            with c1:
-                obs_rid = st.selectbox("Occupied Room", obs_r_opts, index=0, key="obs_rid")
-            with c2:
-                obs_day = st.selectbox("Day", days_opts, index=0, key="obs_day")
-            with c3:
-                obs_per = st.selectbox("Period", periods_opts, index=1, key="obs_per")
-            with c4:
-                obs_desc = st.text_input("Reason / External Event", value="University Seminar", key="obs_desc")
-            
-            s_data["pre_committed"] = [{
-                "session_id": "SES_EXTERNAL_OBS",
-                "day": obs_day,
-                "period": obs_per,
-                "room_id": obs_rid
-            }]
-        else:
-            s_data["pre_committed"] = []
-
-    st.session_state.studio_data = s_data
-
-    # Deploy Multi-Agent Council
-    st.markdown("---")
-    deploy_btn = st.button("🚀 Run Multi-Agent Council & Generate Timetable", type="primary", use_container_width=True)
-
-    if deploy_btn:
-        errs = []
-        r_ids = [r["id"] for r in s_data["rooms"]]
-        t_ids = [t["id"] for t in s_data["teachers"]]
-        
-        if len(r_ids) != len(set(r_ids)):
-            errs.append("Duplicate Room IDs detected. Each room must have a unique identifier.")
-        if len(t_ids) != len(set(t_ids)):
-            errs.append("Duplicate Teacher IDs detected. Each teacher must have a unique identifier.")
-        
-        for sess in s_data["sessions"]:
-            if sess["teacher_id"] not in t_ids:
-                errs.append(f"Session {sess['code']} is assigned to unknown teacher {sess['teacher_id']}.")
-        
-        if errs:
-            for e in errs:
-                st.error(e)
-        else:
-            with st.spinner("Autonomous Agents negotiating time and room contracts via FIPA CNP..."):
-                custom_scen = build_custom_scenario(
-                    teachers_raw=s_data["teachers"],
-                    rooms_raw=s_data["rooms"],
-                    students_raw=s_data["students"],
-                    sessions_raw=s_data["sessions"],
-                    pre_committed_raw=s_data.get("pre_committed", [])
-                )
-                scen_name = f"Real-Time Studio ({len(s_data['teachers'])} Faculty, {len(s_data['sessions'])} Sessions)"
-                _load(custom_scen, scen_name)
-                st.toast("Timetable successfully generated by autonomous agent council!", icon="🎉")
-                st.rerun()
-
-    # If currently active scenario is from the Studio, display a summary card
-    curr_s = sim()
-    if curr_s is not None and "Real-Time Studio" in st.session_state.scenario_name:
-        comm_cnt = sum(1 for sess in curr_s.sessions if sess.is_committed)
-        tot_sess = len(curr_s.sessions)
-        msg_cnt = len(curr_s.message_log)
-        nogood_cnt = sum(ta.nogood_count() for ta in curr_s.teacher_agents.values())
-        is_valid = curr_s.validation_report and curr_s.validation_report.is_fully_valid
-
-        status_text = "SCHEDULE FULLY VERIFIED (0 VIOLATIONS)" if is_valid else "PARTIAL TIMETABLE (DOMAIN EXHAUSTED)"
-        status_color = "#166534" if is_valid else "#991B1B"
-        border_c = "#BBF7D0" if is_valid else "#FECACA"
-        bg_c = "#F0FDF4" if is_valid else "#FEF2F2"
-
-        st.markdown(f"""
-<div style="background:{bg_c}; border:1.5px solid {border_c}; border-radius:12px; padding:20px; margin-top:20px;">
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-    <div>
-      <span style="font-family:'Plus Jakarta Sans',sans-serif; font-size:0.75rem; font-weight:700; color:{status_color}; letter-spacing:0.06em; text-transform:uppercase;">
-        LIVE SIMULATION RESULT
-      </span>
-      <h3 style="font-family:'Playfair Display',Georgia,serif; font-size:1.3rem; margin:2px 0 0 0; color:#1C1617;">
-        {status_text}
-      </h3>
-    </div>
-    <div style="background:#FFFFFF; padding:6px 14px; border-radius:20px; border:1px solid #EAE2D5; font-size:0.78rem; font-weight:700; color:#6B1D2F;">
-      {comm_cnt} / {tot_sess} Sessions Committed
-    </div>
-  </div>
-  <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; font-size:0.82rem; margin-top:14px;">
-    <div style="background:#FFFFFF; padding:12px; border-radius:8px; border:1px solid #EAE2D5;">
-      <div style="color:#8C2B42; font-size:0.68rem; font-weight:700; text-transform:uppercase;">Messages Exchanged</div>
-      <div style="font-size:1.25rem; font-weight:700; font-family:'Playfair Display',Georgia,serif; color:#1C1617;">{msg_cnt}</div>
-    </div>
-    <div style="background:#FFFFFF; padding:12px; border-radius:8px; border:1px solid #EAE2D5;">
-      <div style="color:#8C2B42; font-size:0.68rem; font-weight:700; text-transform:uppercase;">Nogoods Resolved</div>
-      <div style="font-size:1.25rem; font-weight:700; font-family:'Playfair Display',Georgia,serif; color:#1C1617;">{nogood_cnt}</div>
-    </div>
-    <div style="background:#FFFFFF; padding:12px; border-radius:8px; border:1px solid #EAE2D5;">
-      <div style="color:#8C2B42; font-size:0.68rem; font-weight:700; text-transform:uppercase;">Hard Constraints</div>
-      <div style="font-size:1.25rem; font-weight:700; font-family:'Playfair Display',Georgia,serif; color:#166534;">6 / 6 Checked</div>
-    </div>
-    <div style="background:#FFFFFF; padding:12px; border-radius:8px; border:1px solid #EAE2D5;">
-      <div style="color:#8C2B42; font-size:0.68rem; font-weight:700; text-transform:uppercase;">Fill Rate</div>
-      <div style="font-size:1.25rem; font-weight:700; font-family:'Playfair Display',Georgia,serif; color:#1C1617;">{int(comm_cnt/tot_sess*100) if tot_sess else 0}%</div>
-    </div>
-  </div>
-</div>
-""", unsafe_allow_html=True)
-        st.info("💡 Switch to **Master Matrix** tab to inspect your custom weekly timetable, or **Protocol Stream** to watch step-by-step agent bargaining!")
 
 
 # ─── Bottom Auto-Play Ticker (Renders AFTER UI is drawn) ─────────────────────
