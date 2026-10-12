@@ -643,25 +643,256 @@ code:not(pre code) {
     border: 1px solid #F5CBD3 !important;
 }
 
-/* Buttons in Main Area (Playback) */
-.stButton > button {
-    background: #FFFFFF;
-    color: #2D2426;
-    border: 1px solid #DDD3C4;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.82rem;
-    padding: 8px 16px;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+/* ══════════════════════════════════════════════════════════════════
+   STREAMLIT FORM WIDGETS & BASEWEB CONTROLS (CREAM & BURGUNDY THEME)
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Labels above form controls */
+label[data-testid="stWidgetLabel"],
+[data-testid="stWidgetLabel"] p,
+[data-testid="stWidgetLabel"] span {
+    color: #4A121F !important;
+    font-size: 0.76rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.04em !important;
+    text-transform: uppercase !important;
+    margin-bottom: 4px !important;
 }
 
-.stButton > button:hover {
+/* All Text & Number Inputs - Main Area & Sidebar */
+div[data-baseweb="input"],
+div[data-baseweb="base-input"],
+div[data-testid="stTextInput"] input,
+div[data-testid="stNumberInput"] input,
+input[type="text"],
+input[type="number"],
+.stTextInput input,
+.stNumberInput input {
+    background-color: #FFFFFF !important;
+    background: #FFFFFF !important;
+    color: #1C1617 !important;
+    border: 1.5px solid #E2D7C8 !important;
+    border-radius: 8px !important;
+    font-size: 0.85rem !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Inner input container wrapper */
+div[data-baseweb="input"] > div,
+div[data-baseweb="base-input"] > div,
+div[data-testid="stTextInput"] > div > div,
+div[data-testid="stNumberInput"] > div > div {
+    background-color: #FFFFFF !important;
+    background: #FFFFFF !important;
+    border-color: #E2D7C8 !important;
+}
+
+div[data-baseweb="input"]:focus-within,
+div[data-baseweb="base-input"]:focus-within,
+div[data-testid="stTextInput"] > div > div:focus-within,
+div[data-testid="stNumberInput"] > div > div:focus-within {
+    border-color: #6B1D2F !important;
+    box-shadow: 0 0 0 3px rgba(107, 29, 47, 0.12) !important;
+}
+
+/* Number input increment / decrement buttons */
+div[data-testid="stNumberInput"] button,
+div[data-testid="stNumberInputContainer"] button,
+div[data-testid="stNumberInput"] div button {
+    background-color: #F8F3EA !important;
+    background: #F8F3EA !important;
+    color: #6B1D2F !important;
+    border: 1px solid #E0D5C5 !important;
+    border-radius: 6px !important;
+    transition: all 0.2s ease !important;
+}
+
+div[data-testid="stNumberInput"] button:hover,
+div[data-testid="stNumberInputContainer"] button:hover,
+div[data-testid="stNumberInput"] div button:hover {
+    background-color: #6B1D2F !important;
     background: #6B1D2F !important;
     color: #FFFFFF !important;
     border-color: #6B1D2F !important;
+}
+
+div[data-testid="stNumberInput"] button svg {
+    fill: currentColor !important;
+}
+
+/* All Selectboxes & Dropdowns */
+div[data-baseweb="select"],
+div[data-baseweb="select"] > div,
+div[data-testid="stSelectbox"] > div > div {
+    background-color: #FFFFFF !important;
+    background: #FFFFFF !important;
+    color: #1C1617 !important;
+    border: 1.5px solid #E2D7C8 !important;
+    border-radius: 8px !important;
+    font-size: 0.85rem !important;
+}
+
+div[data-baseweb="select"]:focus-within > div,
+div[data-testid="stSelectbox"] > div > div:focus-within {
+    border-color: #6B1D2F !important;
+    box-shadow: 0 0 0 3px rgba(107, 29, 47, 0.12) !important;
+}
+
+div[data-baseweb="select"] *,
+div[data-testid="stSelectbox"] * {
+    color: #1C1617 !important;
+}
+
+/* Select dropdown arrow icon */
+div[data-baseweb="select"] svg,
+div[data-testid="stSelectbox"] svg {
+    fill: #6B1D2F !important;
+}
+
+/* Dropdown popover menu list */
+div[data-baseweb="popover"],
+div[data-baseweb="popover"] > div,
+ul[data-baseweb="menu"],
+div[data-baseweb="popover"] ul {
+    background-color: #FFFFFF !important;
+    background: #FFFFFF !important;
+    border: 1px solid #E2D7C8 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 8px 24px rgba(107, 29, 47, 0.08) !important;
+}
+
+li[data-baseweb="menu-item"],
+div[data-baseweb="popover"] li {
+    background-color: #FFFFFF !important;
+    color: #1C1617 !important;
+    border-radius: 6px !important;
+    padding: 8px 14px !important;
+    font-size: 0.84rem !important;
+    transition: all 0.15s ease !important;
+}
+
+li[data-baseweb="menu-item"]:hover,
+li[data-baseweb="menu-item"][aria-selected="true"] {
+    background-color: #FDF2F4 !important;
+    color: #6B1D2F !important;
+    font-weight: 600 !important;
+}
+
+/* Checkbox */
+[data-testid="stCheckbox"] span {
+    color: #1C1617 !important;
+    font-size: 0.86rem !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   STREAMLIT BUTTONS (PRIMARY & SECONDARY LIGHT THEMING)
+   ══════════════════════════════════════════════════════════════════ */
+
+/* General / Secondary buttons across whole app */
+button,
+button[kind="secondary"],
+button[data-testid="baseButton-secondary"],
+button[data-testid="stBaseButton-secondary"],
+.stButton > button {
+    background-color: #FFFFFF !important;
+    background: #FFFFFF !important;
+    color: #4A121F !important;
+    border: 1.5px solid #D8CCBD !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    font-size: 0.82rem !important;
+    padding: 8px 16px !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 1px 3px rgba(107, 29, 47, 0.04) !important;
+}
+
+button:hover,
+button[kind="secondary"]:hover,
+button[data-testid="baseButton-secondary"]:hover,
+button[data-testid="stBaseButton-secondary"]:hover,
+.stButton > button:hover {
+    background-color: #FAF4EB !important;
+    background: #FAF4EB !important;
+    color: #6B1D2F !important;
+    border-color: #8C2B42 !important;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(107, 29, 47, 0.2) !important;
+    box-shadow: 0 4px 12px rgba(107, 29, 47, 0.12) !important;
+}
+
+/* Primary buttons (e.g. Active Workspace, Deploy Council) */
+button[kind="primary"],
+button[data-testid="baseButton-primary"],
+button[data-testid="stBaseButton-primary"],
+.stButton > button[kind="primary"] {
+    background-color: #6B1D2F !important;
+    background: #6B1D2F !important;
+    color: #FFFFFF !important;
+    border: 1.5px solid #541624 !important;
+    border-radius: 8px !important;
+    font-weight: 700 !important;
+    font-size: 0.84rem !important;
+    box-shadow: 0 2px 8px rgba(107, 29, 47, 0.25) !important;
+}
+
+button[kind="primary"]:hover,
+button[data-testid="baseButton-primary"]:hover,
+button[data-testid="stBaseButton-primary"]:hover,
+.stButton > button[kind="primary"]:hover {
+    background-color: #8C2B42 !important;
+    background: #8C2B42 !important;
+    color: #FFFFFF !important;
+    border-color: #6B1D2F !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(107, 29, 47, 0.35) !important;
+}
+
+button[kind="primary"] p,
+button[kind="primary"] span,
+button[data-testid="baseButton-primary"] p,
+button[data-testid="baseButton-primary"] span {
+    color: #FFFFFF !important;
+}
+
+button[kind="secondary"] p,
+button[kind="secondary"] span,
+button[data-testid="baseButton-secondary"] p,
+button[data-testid="baseButton-secondary"] span {
+    color: #4A121F !important;
+}
+
+button:hover p,
+button:hover span {
+    color: #6B1D2F !important;
+}
+
+button[kind="primary"]:hover p,
+button[kind="primary"]:hover span {
+    color: #FFFFFF !important;
+}
+
+/* Sidebar Specific Buttons */
+[data-testid="stSidebar"] button,
+[data-testid="stSidebar"] .stButton > button {
+    text-align: left !important;
+    margin-bottom: 6px !important;
+}
+
+[data-testid="stSidebar"] button[kind="primary"],
+[data-testid="stSidebar"] .stButton > button[kind="primary"] {
+    background-color: #6B1D2F !important;
+    background: #6B1D2F !important;
+    color: #FFFFFF !important;
+    border-color: #541624 !important;
+    text-align: center !important;
+}
+
+[data-testid="stSidebar"] button[kind="secondary"],
+[data-testid="stSidebar"] .stButton > button[kind="secondary"] {
+    background-color: #FFFFFF !important;
+    background: #FFFFFF !important;
+    color: #2D2426 !important;
+    border-color: #E0D5C5 !important;
 }
 
 /* Streamlit Header & Toolbar */
@@ -812,13 +1043,13 @@ with st.sidebar:
     with c_w1:
         dash_active = (st.session_state.get("current_view", "dashboard") == "dashboard")
         dash_type = "primary" if dash_active else "secondary"
-        if st.button("📊 Timetable", type=dash_type, use_container_width=True, help="View Timetable Matrix, Protocol Stream & Telemetry"):
+        if st.button("Timetable", type=dash_type, use_container_width=True, help="View Timetable Matrix, Protocol Stream & Telemetry"):
             st.session_state.current_view = "dashboard"
             st.rerun()
     with c_w2:
         stud_active = (st.session_state.get("current_view") == "studio")
         stud_type = "primary" if stud_active else "secondary"
-        if st.button("🛠️ Studio", type=stud_type, use_container_width=True, help="Enter/Customize Teachers, Rooms, Courses & Students"):
+        if st.button("Studio", type=stud_type, use_container_width=True, help="Enter/Customize Teachers, Rooms, Courses & Students"):
             st.session_state.current_view = "studio"
             st.rerun()
 
@@ -848,7 +1079,7 @@ with st.sidebar:
     st.markdown("---")
     st.markdown('<div class="sidebar-title">Real-Time Studio</div>', unsafe_allow_html=True)
 
-    if st.button("⚡ Open Live Scenario Studio"):
+    if st.button("Open Scenario Studio"):
         st.session_state.current_view = "studio"
         st.rerun()
 
@@ -993,7 +1224,7 @@ def render_scenario_studio():
 """, unsafe_allow_html=True)
     with col_t_back:
         st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
-        if st.button("📊 View Timetable Dashboard ➜", use_container_width=True):
+        if st.button("View Timetable Dashboard ➜", use_container_width=True):
             st.session_state.current_view = "dashboard"
             st.rerun()
 
@@ -1005,12 +1236,12 @@ def render_scenario_studio():
     # Preset Quick Action Bar
     c_btn1, c_btn2, c_btn3 = st.columns([1.6, 1.4, 1.0])
     with c_btn1:
-        if st.button("⚡ Auto-Fill 5 Teachers & 8 Courses", use_container_width=True, help="Populate full 5-teacher, 8-course, 5-room department scenario"):
+        if st.button("Auto-Fill: 5 Faculty & 8 Courses", use_container_width=True, help="Populate full 5-teacher, 8-course, 5-room department scenario"):
             st.session_state.studio_data = get_autofill_five_teachers_dept()
-            st.toast("Loaded 5-Teacher & 8-Course Department Preset!", icon="🏛️")
+            st.toast("Loaded 5-Teacher & 8-Course Department Preset!")
             st.rerun()
     with c_btn2:
-        if st.button("⚡ Auto-Fill Demo (3 Teachers)", use_container_width=True, help="Populate standard 3-teacher 5-course demo"):
+        if st.button("Auto-Fill: 3 Faculty Benchmark", use_container_width=True, help="Populate standard 3-teacher 5-course demo"):
             st.session_state.studio_data = {
                 "teachers": [
                     {"id": "T1", "name": "Prof. Arora", "priority": 3, "pref_day": "MONDAY", "pref_period": "P2"},
@@ -1039,10 +1270,10 @@ def render_scenario_studio():
                     {"session_id": "SES_CSE330", "day": "MONDAY", "period": "P2", "room_id": "R101"}
                 ]
             }
-            st.toast("Loaded 3-Teacher Demo Preset!", icon="📋")
+            st.toast("Loaded 3-Teacher Demo Preset!")
             st.rerun()
     with c_btn3:
-        if st.button("🧹 Clear Custom", use_container_width=True, help="Clear to minimal customizable template"):
+        if st.button("Clear Custom Fields", use_container_width=True, help="Clear to minimal customizable template"):
             st.session_state.studio_data = {
                 "teachers": [{"id": "T1", "name": "Prof. Primary", "priority": 1, "pref_day": "MONDAY", "pref_period": "P1"}],
                 "rooms": [{"id": "R101", "capacity": 50, "type": "LECTURE", "building": "Block-A"}],
@@ -1050,18 +1281,18 @@ def render_scenario_studio():
                 "sessions": [{"code": "CSE101", "name": "Intro to Computing", "teacher_id": "T1", "enrollment": 40, "type": "LECTURE"}],
                 "pre_committed": []
             }
-            st.toast("Reset to minimal blank template", icon="🧹")
+            st.toast("Reset to minimal blank template")
             st.rerun()
 
     st.markdown("<br/>", unsafe_allow_html=True)
 
     # 5 Sub-Tabs for clean category inputs
     st_t1, st_t2, st_t3, st_t4, st_t5 = st.tabs([
-        "👨‍🏫 Faculty / Teachers",
-        "🏛️ Rooms & Labs",
-        "📚 Course Sessions",
-        "👥 Student Cohorts",
-        "⚠️ Collision Obstacles (Optional)"
+        "Faculty Members",
+        "Rooms & Facilities",
+        "Course Offerings",
+        "Student Cohorts",
+        "Pre-Booked Obstacle (Optional)"
     ])
 
     days_opts = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"]
@@ -1235,7 +1466,7 @@ def render_scenario_studio():
 
     # Deploy Multi-Agent Council
     st.markdown("---")
-    deploy_btn = st.button("🚀 Run Multi-Agent Council & Generate Timetable", type="primary", use_container_width=True)
+    deploy_btn = st.button("Run Multi-Agent Council & Generate Timetable", type="primary", use_container_width=True)
 
     if deploy_btn:
         errs = []
@@ -1266,7 +1497,7 @@ def render_scenario_studio():
                 scen_name = f"Real-Time Studio ({len(s_data['teachers'])} Faculty, {len(s_data['sessions'])} Sessions)"
                 _load(custom_scen, scen_name)
                 st.session_state.current_view = "dashboard"
-                st.toast("Timetable successfully generated by autonomous agent council!", icon="🎉")
+                st.toast("Timetable successfully generated by autonomous agent council!")
                 st.rerun()
 
 
@@ -1282,7 +1513,7 @@ col_dash_info, col_dash_studio = st.columns([3.8, 1.2])
 with col_dash_info:
     st.markdown("<div style='font-size:0.83rem; color:#6E6265; padding:6px 0 10px;'>Workspace: <strong>Timetable &amp; Protocol Dashboard</strong> &nbsp;&bull;&nbsp; Inspect live contracts, weekly matrix &amp; constraint checks</div>", unsafe_allow_html=True)
 with col_dash_studio:
-    if st.button("🛠️ Open Scenario Studio ➜", use_container_width=True, help="Enter/Customize your own teachers, rooms, and courses"):
+    if st.button("Open Scenario Studio ➜", use_container_width=True, help="Enter/Customize your own teachers, rooms, and courses"):
         st.session_state.current_view = "studio"
         st.rerun()
 
@@ -1492,7 +1723,7 @@ with tab_stream:
             for sl, sid in r_committed.items():
                 hold_html += f"<div style='color:#059669; font-size:0.73rem; font-family:\"JetBrains Mono\",monospace;'>✓ {sid} @ {sl}</div>"
             for sl, sid in r_tentative.items():
-                hold_html += f"<div style='color:#B45309; font-size:0.73rem; font-family:\"JetBrains Mono\",monospace;'>⏳ HOLD {sid} @ {sl}</div>"
+                hold_html += f"<div style='color:#B45309; font-size:0.73rem; font-family:\"JetBrains Mono\",monospace;'>[HOLD] {sid} @ {sl}</div>"
 
             st.markdown(f"""
 <div class="agent-card {card_cls}">
