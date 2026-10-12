@@ -350,3 +350,140 @@ def build_department_scale_scenario() -> dict:
         "pre_committed": pre_committed,
     }
 
+
+def get_autofill_five_teachers_dept() -> dict:
+    """
+    Returns editable raw template data for a realistic 5-Teacher,
+    8-Course academic department scenario.
+    """
+    return {
+        "teachers": [
+            {"id": "T1", "name": "Prof. Arora", "priority": 5, "pref_day": "MONDAY", "pref_period": "P2"},
+            {"id": "T2", "name": "Dr. Mehra",   "priority": 4, "pref_day": "TUESDAY", "pref_period": "P2"},
+            {"id": "T3", "name": "Dr. Kapoor",  "priority": 3, "pref_day": "WEDNESDAY", "pref_period": "P2"},
+            {"id": "T4", "name": "Dr. Sen",     "priority": 2, "pref_day": "THURSDAY", "pref_period": "P2"},
+            {"id": "T5", "name": "Prof. Iyer",  "priority": 1, "pref_day": "FRIDAY", "pref_period": "P2"},
+        ],
+        "rooms": [
+            {"id": "R101", "capacity": 60, "type": "LECTURE", "building": "Block-A"},
+            {"id": "R204", "capacity": 75, "type": "LECTURE", "building": "Block-B"},
+            {"id": "R305", "capacity": 45, "type": "LECTURE", "building": "Block-A"},
+            {"id": "LAB1", "capacity": 35, "type": "LAB",     "building": "Block-C"},
+            {"id": "LAB2", "capacity": 30, "type": "LAB",     "building": "Block-C"},
+        ],
+        "students": [
+            {"id": "S1", "name": "Cohort 4A (Final Year)",   "courses": "CSE401, CSE330, CSE410L"},
+            {"id": "S2", "name": "Cohort 3B (Third Year)",   "courses": "CSE330, CSE501, CSE340"},
+            {"id": "S3", "name": "Cohort 2C (Second Year)",  "courses": "CSE202, MAT101L"},
+            {"id": "S4", "name": "Cohort 1D (First Year)",   "courses": "CSE101"},
+        ],
+        "sessions": [
+            {"code": "CSE401",  "name": "Advanced Algorithms",   "teacher_id": "T1", "enrollment": 55, "type": "LECTURE"},
+            {"code": "CSE330",  "name": "Operating Systems",     "teacher_id": "T2", "enrollment": 48, "type": "LECTURE"},
+            {"code": "CSE501",  "name": "Machine Learning",      "teacher_id": "T1", "enrollment": 42, "type": "LECTURE"},
+            {"code": "CSE340",  "name": "Distributed Systems",  "teacher_id": "T2", "enrollment": 35, "type": "LECTURE"},
+            {"code": "CSE202",  "name": "Data Structures",       "teacher_id": "T3", "enrollment": 40, "type": "LECTURE"},
+            {"code": "MAT101L", "name": "Discrete Math Lab",     "teacher_id": "T3", "enrollment": 28, "type": "LAB"},
+            {"code": "CSE410L", "name": "AI Systems Lab",        "teacher_id": "T4", "enrollment": 30, "type": "LAB"},
+            {"code": "CSE101",  "name": "Intro to Programming",  "teacher_id": "T5", "enrollment": 50, "type": "LECTURE"},
+        ],
+        "pre_committed": [
+            {"session_id": "SES_CSE330", "day": "MONDAY", "period": "P2", "room_id": "R101"}
+        ]
+    }
+
+
+def build_custom_scenario(
+    teachers_raw: list[dict],
+    rooms_raw: list[dict],
+    students_raw: list[dict],
+    sessions_raw: list[dict],
+    pre_committed_raw: list[dict] | None = None
+) -> dict:
+    """
+    Constructs a fully typed, executable multi-agent scenario dictionary
+    from raw interactive inputs.
+    """
+    from models import ALL_SLOTS
+
+    # Parse rooms
+    rooms = []
+    for r in rooms_raw:
+        rtype = RoomType.LAB if str(r.get("type", "")).upper() == "LAB" else RoomType.LECTURE
+        rooms.append(RoomSpec(
+            room_id=str(r["id"]).strip(),
+            capacity=int(r.get("capacity", 40)),
+            room_type=rtype,
+            building=str(r.get("building", "Main Block")).strip(),
+        ))
+
+    # Parse teachers
+    teachers = []
+    for t in teachers_raw:
+        pref_day_str = str(t.get("pref_day", "MONDAY")).upper()
+        pref_per_str = str(t.get("pref_period", "P2")).upper()
+        pref_day = getattr(Day, pref_day_str, Day.MONDAY)
+        pref_per = getattr(Period, pref_per_str, Period.P2)
+        pref_slots = [TimeSlot(pref_day, pref_per)]
+
+        teachers.append(TeacherSpec(
+            teacher_id=str(t["id"]).strip(),
+            name=str(t.get("name", t["id"])).strip(),
+            available_slots=set(ALL_SLOTS),
+            preferred_slots=pref_slots,
+            priority=int(t.get("priority", 1)),
+        ))
+
+    # Parse students
+    students = []
+    for s in students_raw:
+        courses_val = s.get("courses", "")
+        if isinstance(courses_val, str):
+            enrolled = [c.strip() for c in courses_val.split(",") if c.strip()]
+        else:
+            enrolled = list(courses_val)
+        students.append(StudentSpec(
+            student_id=str(s["id"]).strip(),
+            name=str(s.get("name", s["id"])).strip(),
+            enrolled_courses=enrolled,
+        ))
+
+    # Parse sessions
+    sessions = []
+    for sess in sessions_raw:
+        code = str(sess.get("code", sess.get("course_id", "CRS"))).strip()
+        name = str(sess.get("name", sess.get("course_name", code))).strip()
+        sess_id = f"SES_{code}"
+        stype = RoomType.LAB if str(sess.get("type", sess.get("room_type", ""))).upper() == "LAB" else RoomType.LECTURE
+        sessions.append(CourseSession(
+            session_id=sess_id,
+            course_id=code,
+            course_name=name,
+            teacher_id=str(sess.get("teacher_id", "T1")).strip(),
+            enrollment=int(sess.get("enrollment", 30)),
+            room_type=stype,
+        ))
+
+    # Parse pre-committed
+    pre_committed = []
+    if pre_committed_raw:
+        for pc in pre_committed_raw:
+            p_day_str = str(pc.get("day", "MONDAY")).upper()
+            p_per_str = str(pc.get("period", "P2")).upper()
+            p_day = getattr(Day, p_day_str, Day.MONDAY)
+            p_per = getattr(Period, p_per_str, Period.P2)
+            pre_committed.append({
+                "session_id": str(pc.get("session_id", "")).strip(),
+                "slot": TimeSlot(p_day, p_per),
+                "room_id": str(pc.get("room_id", "")).strip(),
+            })
+
+    return {
+        "rooms": rooms,
+        "teachers": teachers,
+        "students": students,
+        "sessions": sessions,
+        "pre_committed": pre_committed,
+    }
+
+

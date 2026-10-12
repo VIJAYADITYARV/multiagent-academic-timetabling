@@ -511,3 +511,31 @@ def test_department_scale_scenario_succeeds_with_zero_violations():
     assert report.is_fully_valid, "Department scale scenario produced constraint violations!"
     assert report.total_violations == 0
 
+
+def test_custom_five_teachers_realtime_scenario_succeeds():
+    """
+    Validates that real-time custom scenario generation with 5 teachers,
+    8 courses, 5 rooms, and 4 cohorts runs cleanly with zero constraint violations.
+    """
+    from demo_data import get_autofill_five_teachers_dept, build_custom_scenario
+    raw_data = get_autofill_five_teachers_dept()
+    scenario = build_custom_scenario(
+        teachers_raw=raw_data["teachers"],
+        rooms_raw=raw_data["rooms"],
+        students_raw=raw_data["students"],
+        sessions_raw=raw_data["sessions"],
+        pre_committed_raw=raw_data["pre_committed"],
+    )
+    state = Scheduler.build_from_scenario(scenario)
+    Scheduler.run_full(state)
+    report = Scheduler.validate(state)
+
+    committed = sum(1 for s in state.sessions if s.is_committed)
+    failed    = sum(1 for s in state.sessions if s.failed)
+
+    assert committed == 8, f"Expected 8 committed sessions, got {committed}"
+    assert failed == 0, f"Expected 0 failed sessions, got {failed}"
+    assert report.is_fully_valid, "Custom 5-teacher scenario produced constraint violations!"
+    assert report.total_violations == 0
+
+
