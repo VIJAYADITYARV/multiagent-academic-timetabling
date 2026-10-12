@@ -43,7 +43,7 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 html, body, [class*="css"] {
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -108,7 +108,7 @@ html, body, [class*="css"] {
 }
 
 .navbar-title {
-    font-family: 'Playfair Display', Georgia, serif;
+    font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
     font-size: 1.5rem;
     font-weight: 700;
     color: #1C1617;
@@ -205,7 +205,7 @@ html, body, [class*="css"] {
 }
 
 .sidebar-brand {
-    font-family: 'Playfair Display', Georgia, serif;
+    font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
     font-size: 1.18rem;
     font-weight: 700;
     color: #4A121F;
@@ -250,7 +250,7 @@ html, body, [class*="css"] {
 
 /* ── Section Titles ── */
 .sec-header {
-    font-family: 'Playfair Display', Georgia, serif;
+    font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
     font-size: 0.95rem;
     font-weight: 700;
     letter-spacing: -0.01em;
@@ -318,7 +318,7 @@ html, body, [class*="css"] {
 }
 
 .agent-name {
-    font-family: 'Playfair Display', Georgia, serif;
+    font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
     font-size: 1.05rem;
     font-weight: 700;
     color: #1C1617;
@@ -481,7 +481,7 @@ p, span, li, div {
 }
 
 h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', Georgia, serif;
+    font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
     color: #1C1617 !important;
 }
 
@@ -543,7 +543,7 @@ strong, b {
     color: #1C1617 !important;
     font-weight: 700 !important;
     font-size: 1.7rem !important;
-    font-family: 'Playfair Display', Georgia, serif !important;
+    font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif !important;
 }
 
 /* Streamlit Expanders */
@@ -952,7 +952,7 @@ button[data-testid="stSidebarNavCollapseButton"],
 }
 
 .studio-title {
-    font-family: 'Playfair Display', Georgia, serif;
+    font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
     font-size: 1.35rem;
     font-weight: 700;
     color: #1C1617;
@@ -1199,7 +1199,7 @@ st.markdown(f"""
 if sim() is None:
     st.markdown("""
 <div class="status-box info" style="padding: 34px; text-align: center; border-left-color: #6B1D2F;">
-  <div style="font-family:'Playfair Display',Georgia,serif; font-size: 1.25rem; font-weight: 700; color: #4A121F; margin-bottom: 6px;">
+  <div style="font-family:'Outfit',Georgia,serif; font-size: 1.25rem; font-weight: 700; color: #4A121F; margin-bottom: 6px;">
     System Initialization Required
   </div>
   <div style="color: #6E6265; font-size: 0.88rem; max-width: 600px; margin: 0 auto; line-height: 1.55;">
@@ -1564,7 +1564,7 @@ with tab_stream:
     if last_msg is None:
         st.markdown("""
 <div class="telemetry-banner" style="border-left-color: #6B1D2F;">
-  <span style="font-family:'Playfair Display',Georgia,serif; font-size:0.88rem; color:#6B1D2F; font-weight:700;">
+  <span style="font-family:'Outfit',Georgia,serif; font-size:0.88rem; color:#6B1D2F; font-weight:700;">
     STREAM READY &nbsp;&bull;&nbsp; PROTOCOL INITIALIZED
   </span><br/>
   <span style="font-size:0.86rem; color:#2D2426;">
@@ -1597,7 +1597,7 @@ with tab_stream:
 
         st.markdown(f"""
 <div class="telemetry-banner" style="border-left-color: {bcolor};">
-  <div style="font-family:'Playfair Display',Georgia,serif; font-size:0.8rem; color:{bcolor}; font-weight:700; margin-bottom:3px;">
+  <div style="font-family:'Outfit',Georgia,serif; font-size:0.8rem; color:{bcolor}; font-weight:700; margin-bottom:3px;">
     STREAM STEP {idx} OF {total_msgs} &nbsp;&bull;&nbsp; ROUND {last_msg.round_num} &nbsp;&bull;&nbsp; [{t}]
   </div>
   <div style="font-size:0.88rem; color:#1C1617; line-height:1.5;">
