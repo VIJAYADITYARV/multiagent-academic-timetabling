@@ -1244,9 +1244,9 @@ def render_scenario_studio():
         if st.button("Auto-Fill: 3 Faculty Benchmark", use_container_width=True, help="Populate standard 3-teacher 5-course demo"):
             st.session_state.studio_data = {
                 "teachers": [
-                    {"id": "T1", "name": "Prof. Arora", "priority": 3, "pref_day": "MONDAY", "pref_period": "P2"},
-                    {"id": "T2", "name": "Dr. Mehra",   "priority": 2, "pref_day": "TUESDAY", "pref_period": "P2"},
-                    {"id": "T3", "name": "Dr. Kapoor",  "priority": 1, "pref_day": "WEDNESDAY", "pref_period": "P2"},
+                    {"id": "T1", "name": "Prof. Aarthi", "priority": 3, "pref_day": "MONDAY", "pref_period": "P2"},
+                    {"id": "T2", "name": "Dr. Baskar",   "priority": 2, "pref_day": "TUESDAY", "pref_period": "P2"},
+                    {"id": "T3", "name": "Dr. Bagyammal",  "priority": 1, "pref_day": "WEDNESDAY", "pref_period": "P2"},
                 ],
                 "rooms": [
                     {"id": "R101", "capacity": 50, "type": "LECTURE", "building": "Block-A"},

@@ -127,21 +127,21 @@ def _make_teachers() -> List[TeacherSpec]:
     return [
         TeacherSpec(
             teacher_id     = "T1",
-            name           = "Prof. Arora",
+            name           = "Prof. Aarthi",
             available_slots = t1_avail,
             preferred_slots = t1_pref,
             priority       = 3,
         ),
         TeacherSpec(
             teacher_id     = "T2",
-            name           = "Dr. Mehra",
+            name           = "Dr. Baskar",
             available_slots = t2_avail,
             preferred_slots = t2_pref,
             priority       = 2,
         ),
         TeacherSpec(
             teacher_id     = "T3",
-            name           = "Dr. Kapoor",
+            name           = "Dr. Bagyammal",
             available_slots = t3_avail,
             preferred_slots = t3_pref,
             priority       = 1,
@@ -310,9 +310,9 @@ def build_department_scale_scenario() -> dict:
     ]
 
     teachers = [
-        TeacherSpec(teacher_id="T1", name="Prof. Arora", available_slots=_all_slots_except(t1_unavail), preferred_slots=t1_pref, priority=4),
-        TeacherSpec(teacher_id="T2", name="Dr. Mehra",   available_slots=_all_slots_except(t2_unavail), preferred_slots=t2_pref, priority=3),
-        TeacherSpec(teacher_id="T3", name="Dr. Kapoor", available_slots=t3_avail, preferred_slots=t3_pref, priority=2),
+        TeacherSpec(teacher_id="T1", name="Prof. Aarthi",   available_slots=_all_slots_except(t1_unavail), preferred_slots=t1_pref, priority=4),
+        TeacherSpec(teacher_id="T2", name="Dr. Baskar",   available_slots=_all_slots_except(t2_unavail), preferred_slots=t2_pref, priority=3),
+        TeacherSpec(teacher_id="T3", name="Dr. Bagyammal", available_slots=t3_avail, preferred_slots=t3_pref, priority=2),
         TeacherSpec(teacher_id="T4", name="Dr. Sen",    available_slots=t4_avail, preferred_slots=t4_pref, priority=1),
     ]
 
@@ -358,9 +358,9 @@ def get_autofill_five_teachers_dept() -> dict:
     """
     return {
         "teachers": [
-            {"id": "T1", "name": "Prof. Arora", "priority": 5, "pref_day": "MONDAY", "pref_period": "P2"},
-            {"id": "T2", "name": "Dr. Mehra",   "priority": 4, "pref_day": "TUESDAY", "pref_period": "P2"},
-            {"id": "T3", "name": "Dr. Kapoor",  "priority": 3, "pref_day": "WEDNESDAY", "pref_period": "P2"},
+            {"id": "T1", "name": "Prof. Aarthi", "priority": 5, "pref_day": "MONDAY", "pref_period": "P2"},
+            {"id": "T2", "name": "Dr. Baskar",   "priority": 4, "pref_day": "TUESDAY", "pref_period": "P2"},
+            {"id": "T3", "name": "Dr. Bagyammal",  "priority": 3, "pref_day": "WEDNESDAY", "pref_period": "P2"},
             {"id": "T4", "name": "Dr. Sen",     "priority": 2, "pref_day": "THURSDAY", "pref_period": "P2"},
             {"id": "T5", "name": "Prof. Iyer",  "priority": 1, "pref_day": "FRIDAY", "pref_period": "P2"},
         ],

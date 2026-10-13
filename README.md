@@ -175,9 +175,9 @@ Use **⏭️ Next Negotiation Step** to process one session at a time and observ
 
 | ID | Name | Availability | Priority |
 |----|------|-------------|----------|
-| T1 | Prof. Arora | All except Fri P5-P8 | 3 (highest) |
-| T2 | Dr. Mehra | Tue–Fri all | 2 |
-| T3 | Dr. Kapoor | Mon–Fri P1-P4 only | 1 |
+| T1 | Prof. Aarthi | All except Fri P5-P8 | 3 (highest) |
+| T2 | Dr. Baskar | Tue–Fri all | 2 |
+| T3 | Dr. Bagyammal | Mon–Fri P1-P4 only | 1 |
 
 ### Student Groups
 
